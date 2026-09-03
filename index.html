@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>叶子姐「刷新在办公室」记录</title>
+<style>
+:root {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #f59e0b;
+  --accent-light: #fef3c7;
+  --accent-dark: #b45309;
+  --accent2: #0d9488;
+  --danger: #dc2626;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+h1 { font-size: 22px; margin-bottom: 4px; }
+.subtitle { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.card h2 { font-size: 15px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card .h2sub { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+/* 主按钮 */
+.hero { display: flex; gap: 12px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+#btn-now {
+  background: var(--accent); color: #fff; border: none; border-radius: 10px;
+  padding: 13px 26px; font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(245,158,11,.35);
+}
+#btn-now:hover { background: #e08c07; }
+#btn-now:active { transform: translateY(1px); }
+.hero .hint { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* 统计卡 */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.stat .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.stat .value { font-size: 24px; font-weight: 700; }
+.stat .value small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.stat .value.hi { color: var(--accent-dark); }
+
+/* 日历 */
+.cal-nav { display: flex; align-items: center; gap: 8px; }
+.cal-nav button {
+  border: 1px solid var(--border); background: #fff; border-radius: 8px;
+  height: 30px; cursor: pointer; font-size: 14px; color: var(--text); padding: 0 8px;
+}
+.cal-nav button:hover { background: var(--bg); }
+.cal-title { font-size: 15px; font-weight: 600; min-width: 105px; text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-weekday { text-align: center; font-size: 12px; color: var(--muted); padding: 4px 0; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 10px; border: 1px solid transparent;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; position: relative; background: var(--bg);
+  transition: all .12s;
+}
+.cal-day:hover { border-color: var(--accent); }
+.cal-day.other { opacity: .3; }
+.cal-day.today { border-color: var(--accent2); font-weight: 700; }
+.cal-day.on { background: var(--accent-light); color: var(--accent-dark); font-weight: 700; }
+.cal-day .dots { position: absolute; bottom: 6px; display: flex; gap: 2px; }
+.cal-day .dots i { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-dark); display: block; }
+.cal-day .t { font-size: 10px; color: var(--accent-dark); font-weight: 500; }
+.cal-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.cal-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.cal-legend .l-on::before { background: var(--accent-light); border: 1px solid var(--accent); }
+.cal-legend .l-today::before { background: #fff; border: 1px solid var(--accent2); }
+
+/* 星期概率 */
+.wd-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.wd-name { width: 40px; font-size: 13px; color: var(--muted); text-align: right; flex-shrink: 0; }
+.wd-bar-wrap { flex: 1; background: var(--bg); border-radius: 6px; height: 22px; }
+.wd-bar { height: 100%; border-radius: 6px; background: var(--accent); opacity: .75; min-width: 2px; transition: width .3s; }
+.wd-row.best .wd-bar { background: var(--accent-dark); opacity: 1; }
+.wd-row.best .wd-name { color: var(--accent-dark); font-weight: 700; }
+.wd-val { width: 112px; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+.wd-row.best .wd-val { color: var(--accent-dark); font-weight: 600; }
+.note { margin-top: 12px; font-size: 13px; color: var(--muted); line-height: 1.7; background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+.note b { color: var(--accent-dark); }
+.empty { text-align: center; color: var(--muted); font-size: 13px; padding: 30px 0; line-height: 1.8; }
+
+/* 柱状图 */
+.chart { display: flex; align-items: flex-end; gap: 6px; height: 160px; padding-top: 18px; }
+.chart .col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.chart .bar { width: 100%; max-width: 44px; background: var(--accent); opacity: .8; border-radius: 6px 6px 0 0; min-height: 2px; transition: height .3s; position: relative; }
+.chart .col:hover .bar { opacity: 1; }
+.chart .bar .num { position: absolute; top: -17px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--text); font-weight: 600; }
+.chart .xlab { font-size: 11px; color: var(--muted); margin-top: 6px; white-space: nowrap; }
+.chart .col.best .bar { background: var(--accent-dark); opacity: 1; }
+.chart .col.best .xlab { color: var(--accent-dark); font-weight: 700; }
+
+/* 记录列表 */
+.rec-list { max-height: 300px; overflow-y: auto; }
+.rec-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 4px; border-bottom: 1px solid var(--border); font-size: 14px; gap: 10px; }
+.rec-item:last-child { border-bottom: none; }
+.rec-item .left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rec-item .time { font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
+.rec-item .date { color: var(--muted); font-size: 13px; }
+.rec-item .wd { color: var(--muted); font-size: 12px; }
+.rec-item .note-txt { font-size: 12px; color: var(--muted); }
+.rec-item .del { color: var(--danger); cursor: pointer; font-size: 12px; border: none; background: none; flex-shrink: 0; }
+.rec-item .del:hover { text-decoration: underline; }
+
+/* 工具栏 */
+.toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.toolbar button, .toolbar label.btn {
+  border: 1px solid var(--border); background: var(--card); color: var(--text);
+  border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer;
+}
+.toolbar button:hover, .toolbar label.btn:hover { background: var(--bg); }
+.toolbar .danger-btn { color: var(--danger); }
+
+/* 弹窗 */
+.modal-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); align-items: center; justify-content: center; z-index: 50; }
+.modal-mask.show { display: flex; }
+.modal { background: #fff; border-radius: 14px; padding: 22px; width: 340px; }
+.modal h3 { font-size: 16px; margin-bottom: 6px; }
+.modal .sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.modal .row { display: flex; gap: 8px; margin-bottom: 12px; }
+.modal input[type="time"] { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; width: 110px; }
+.modal input[type="text"] { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; flex: 1; min-width: 0; }
+.modal .existing { max-height: 170px; overflow-y: auto; margin-bottom: 6px; }
+.modal .ex-item { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 7px 2px; border-bottom: 1px solid var(--border); }
+.modal .ex-item .del { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 12px; }
+.modal .btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+.modal .btns button { border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: #fff; }
+.modal .btns .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; font-size: 13px; border-radius: 8px; padding: 9px 18px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 60; }
+.toast.show { opacity: .92; }
+footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 22px; }
+</style>
+</head>
+<body>
+
+<h1>🍃 叶子姐「刷新在办公室」记录</h1>
+<div class="subtitle">她常年在外跑外勤，能在办公室碰见全靠运气 —— 碰见一次，记一次</div>
+
+<div class="hero">
+  <button id="btn-now">🔥 她现在在办公室</button>
+  <div class="hint">点一下即记下当前时刻<br>一天可以记多次（上午在、下午又在了）</div>
+</div>
+
+<div class="toolbar">
+  <button id="btn-add-other">补记 / 手动添加</button>
+  <label class="btn" for="import-file">导入</label>
+  <input type="file" id="import-file" accept=".json" style="display:none">
+  <button id="btn-export">导出备份</button>
+  <button id="btn-clear" class="danger-btn">清空全部</button>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div class="layout">
+
+  <!-- 日历 -->
+  <div class="card">
+    <h2>
+      <span>日历</span>
+      <span class="cal-nav">
+        <button id="prev-month" title="上个月">‹</button>
+        <span class="cal-title" id="cal-title"></span>
+        <button id="next-month" title="下个月">›</button>
+        <button id="back-today" style="padding:0 10px;font-size:12px;">今天</button>
+      </span>
+    </h2>
+    <div class="cal-grid" id="cal-weekdays"></div>
+    <div class="cal-grid" id="cal-days" style="margin-top:6px;"></div>
+    <div class="cal-legend">
+      <span class="l-on">当天刷新过</span><span class="l-today">今天</span><span>点日期查看/编辑</span>
+    </div>
+  </div>
+
+  <!-- 星期概率 -->
+  <div class="card">
+    <h2>哪天最可能在办公室 <span class="h2sub" id="wd-range"></span></h2>
+    <div id="weekday-analysis"></div>
+    <div class="note" id="analysis-note"></div>
+  </div>
+
+  <!-- 时段分布 -->
+  <div class="card">
+    <h2>哪个时段撞见她最多 <span class="h2sub">按刷新次数</span></h2>
+    <div class="chart" id="hour-chart"></div>
+  </div>
+
+  <!-- 月度趋势 -->
+  <div class="card">
+    <h2>月度刷新次数 <span class="h2sub">最近 12 个月</span></h2>
+    <div class="chart" id="month-chart"></div>
+  </div>
+
+  <!-- 记录明细 -->
+  <div class="card full">
+    <h2>当月刷新明细 <span class="h2sub" id="rec-count"></span></h2>
+    <div class="rec-list" id="rec-list"></div>
+  </div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal-mask" id="modal-mask">
+  <div class="modal">
+    <h3 id="modal-title">记录</h3>
+    <div class="sub" id="modal-sub"></div>
+    <div class="row">
+      <input type="time" id="inp-time">
+      <input type="text" id="inp-note" placeholder="备注：聊了两句 / 拿了材料就走">
+    </div>
+    <div class="btns" style="justify-content:flex-start;margin-top:0;margin-bottom:12px;">
+      <button class="primary" id="btn-add-time">＋ 加这条</button>
+    </div>
+    <div class="existing" id="modal-existing"></div>
+    <div class="btns">
+      <button id="btn-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer>碰见就记 · 攒够数据就能算出她的刷新规律</footer>
+
+<script>
+const STORE_KEY = "yezi-office-v2";
+const OLD_KEY = "yezi-attendance-v1";
+const WD_NAMES = ["周日","周一","周二","周三","周四","周五","周六"];
+const WD_ORDER = [1,2,3,4,5,6,0];
+const SLOTS = [
+  { key: "early",  name: "早上",  test: h => h >= 6  && h < 10 },
+  { key: "morning",name: "上午",  test: h => h >= 10 && h < 12 },
+  { key: "noon",   name: "中午",  test: h => h >= 12 && h < 14 },
+  { key: "pm",     name: "下午",  test: h => h >= 14 && h < 17 },
+  { key: "evening",name: "下班后",test: h => h >= 17 || h < 6 }
+];
+
+const today = new Date();
+let records = load();
+let viewYear = today.getFullYear(), viewMonth = today.getMonth();
+let editingDate = null;
+
+function load() {
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+  if (!raw) { // 兼容旧版出勤数据
+    try {
+      const old = JSON.parse(localStorage.getItem(OLD_KEY));
+      if (old) {
+        raw = {};
+        for (const k in old) raw[k] = old[k] && old[k].time ? [{ t: old[k].time, n: old[k].note || "" }] : [{ t: "", n: "" }];
+      }
+    } catch (e) {}
+  }
+  return raw && typeof raw === "object" ? raw : {};
+}
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(records)); }
+
+function fmt(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function nowTime() { const d = new Date(); return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; }
+function parse(s) { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); }
+function daysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
+function addMonths(y, m, delta) { const d = new Date(y, m + delta, 1); return [d.getFullYear(), d.getMonth()]; }
+function allDates() { return Object.keys(records).filter(k => records[k] && records[k].length).sort(); }
+function allSightings() {
+  const out = [];
+  allDates().forEach(d => records[d].forEach(s => out.push({ date: d, ...s })));
+  return out;
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1600);
+}
+function escapeHtml(s) { return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- 统计卡 ---------- */
+function renderStats() {
+  const dates = allDates();
+  const sightings = allSightings();
+  const prefix = `${viewYear}-${String(viewMonth+1).padStart(2,"0")}`;
+  const monthDates = dates.filter(k => k.startsWith(prefix));
+  const monthSight = monthDates.reduce((n, k) => n + records[k].length, 0);
+
+  let lastDays = null;
+  if (dates.length) {
+    const t0 = new Date(); t0.setHours(0,0,0,0);
+    lastDays = Math.round((t0 - parse(dates[dates.length-1])) / 86400000);
+  }
+
+  // 最可能的星期
+  let bestWd = null;
+  if (dates.length) {
+    const start = parse(dates[0]);
+    const t0 = new Date(); t0.setHours(0,0,0,0);
+    const total = Math.floor((t0 - start) / 86400000) + 1;
+    const elapsed = {}, present = {};
+    for (let i = 0; i < total; i++) {
+      const d = new Date(start.getTime() + i * 86400000);
+      elapsed[d.getDay()] = (elapsed[d.getDay()] || 0) + 1;
+      if (records[fmt(d)]?.length) present[d.getDay()] = (present[d.getDay()] || 0) + 1;
+    }
+    let bestRate = -1;
+    WD_ORDER.forEach(w => {
+      const r = (present[w] || 0) / (elapsed[w] || 1);
+      if (r > bestRate) { bestRate = r; bestWd = w; }
+    });
+  }
+
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><div class="label">本月在办公室（${viewMonth+1}月）</div>
+      <div class="value">${monthDates.length}<small> 天 / ${monthSight} 次</small></div></div>
+    <div class="stat"><div class="label">上次碰到她</div>
+      <div class="value" style="font-size:${lastDays===null?24:(lastDays>99?20:24)}px;">${
+        lastDays === null ? "—" : lastDays === 0 ? "就是今天" : `${lastDays}<small> 天前</small>`
+      }</div></div>
+    <div class="stat"><div class="label">累计刷新</div>
+      <div class="value">${sightings.length}<small> 次 / ${dates.length} 天</small></div></div>
+    <div class="stat"><div class="label">最容易撞见</div>
+      <div class="value ${bestWd!==null?'hi':''}" style="font-size:19px;">${bestWd!==null ? WD_NAMES[bestWd] : "—"}</div></div>
+  `;
+}
+
+/* ---------- 日历 ---------- */
+function renderCalendar() {
+  document.getElementById("cal-title").textContent = `${viewYear}年${viewMonth+1}月`;
+  document.getElementById("cal-weekdays").innerHTML =
+    WD_ORDER.map(w => `<div class="cal-weekday">${WD_NAMES[w]}</div>`).join("");
+
+  const box = document.getElementById("cal-days");
+  box.innerHTML = "";
+  const startOffset = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+  const total = daysInMonth(viewYear, viewMonth);
+
+  const [py, pm] = addMonths(viewYear, viewMonth, -1);
+  const prevTotal = daysInMonth(py, pm);
+  for (let i = startOffset - 1; i >= 0; i--) box.appendChild(makeDayCell(py, pm, prevTotal - i, true));
+  for (let d = 1; d <= total; d++) box.appendChild(makeDayCell(viewYear, viewMonth, d, false));
+  const [ny, nm] = addMonths(viewYear, viewMonth, 1);
+  let next = 1;
+  while (box.children.length % 7 !== 0) box.appendChild(makeDayCell(ny, nm, next++, true));
+}
+
+function makeDayCell(y, m, d, other) {
+  const el = document.createElement("div");
+  const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  el.className = "cal-day" + (other ? " other" : "");
+  if (key === fmt(new Date())) el.classList.add("today");
+  const list = records[key] || [];
+  if (list.length) {
+    el.classList.add("on");
+    const firstTime = list.find(s => s.t)?.t || "";
+    el.innerHTML = `<span>${d}</span>` +
+      (firstTime ? `<span class="t">${firstTime}</span>` : "") +
+      `<span class="dots">${list.slice(0,3).map(() => "<i></i>").join("")}</span>`;
+    el.title = `${key} 刷新 ${list.length} 次：${list.map(s => s.t || "未填时间").join("、")}`;
+  } else {
+    el.textContent = d;
+    el.title = key;
+  }
+  el.onclick = () => openModal(key);
+  return el;
+}
+
+/* ---------- 弹窗 ---------- */
+function openModal(key) {
+  editingDate = key;
+  const list = records[key] || [];
+  document.getElementById("modal-title").textContent = `${key}（${WD_NAMES[parse(key).getDay()]}）`;
+  document.getElementById("modal-sub").textContent =
+    list.length ? `已记录 ${list.length} 次刷新` : "这天还没记录过";
+  document.getElementById("inp-time").value = key === fmt(new Date()) ? nowTime() : "";
+  document.getElementById("inp-note").value = "";
+  renderExisting();
+  document.getElementById("modal-mask").classList.add("show");
+}
+function renderExisting() {
+  const list = (records[editingDate] || []).slice().sort((a,b) => (a.t||"99").localeCompare(b.t||"99"));
+  const box = document.getElementById("modal-existing");
+  if (!list.length) { box.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 2px;">暂无记录，上面加一条。</div>`; return; }
+  box.innerHTML = list.map((s, i) => `<div class="ex-item">
+      <span><b style="font-variant-numeric:tabular-nums;">${escapeHtml(s.t || "未填时间")}</b>
+        ${s.n ? `<span style="color:var(--muted);margin-left:6px;">${escapeHtml(s.n)}</span>` : ""}</span>
+      <button class="del" data-i="${i}">删除</button>
+    </div>`).join("");
+  box.querySelectorAll(".del").forEach(b => b.onclick = () => {
+    const idx = Number(b.dataset.i);
+    const arr = (records[editingDate] || []).slice().sort((a,b2) => (a.t||"99").localeCompare(b2.t||"99"));
+    const target = arr[idx];
+    records[editingDate] = records[editingDate].filter(s => s !== target);
+    if (!records[editingDate].length) delete records[editingDate];
+    save(); renderExisting(); renderAll();
+    toast("已删除");
+  });
+}
+function closeModal() { editingDate = null; document.getElementById("modal-mask").classList.remove("show"); }
+document.getElementById("btn-close").onclick = closeModal;
+document.getElementById("modal-mask").onclick = e => { if (e.target === e.currentTarget) closeModal(); };
+document.getElementById("btn-add-time").onclick = () => {
+  if (!editingDate) return;
+  const t = document.getElementById("inp-time").value;
+  const n = document.getElementById("inp-note").value.trim();
+  if (!records[editingDate]) records[editingDate] = [];
+  records[editingDate].push({ t, n });
+  save();
+  document.getElementById("inp-time").value = nowTime();
+  document.getElementById("inp-note").value = "";
+  renderExisting(); renderAll();
+  toast(`已记录 ${editingDate} ${t || "（未填时间）"}`);
+};
+
+/* ---------- 星期概率 ---------- */
+function renderWeekday() {
+  const box = document.getElementById("weekday-analysis");
+  const note = document.getElementById("analysis-note");
+  const dates = allDates();
+  const rangeEl = document.getElementById("wd-range");
+
+  if (!dates.length) {
+    rangeEl.textContent = "";
+    box.innerHTML = `<div class="empty">还没有任何记录<br>看见她在办公室，就点上面那个按钮</div>`;
+    note.innerHTML = "记录满几周后，这里会算出她每个星期几出现在办公室的概率，以及哪个时段最容易撞见。";
+    return;
+  }
+
+  const start = parse(dates[0]);
+  const t0 = new Date(); t0.setHours(0,0,0,0);
+  const total = Math.floor((t0 - start) / 86400000) + 1;
+  rangeEl.textContent = `${fmt(start)} 至今 · ${total} 天`;
+
+  const elapsed = {}, present = {};
+  WD_ORDER.forEach(w => { elapsed[w] = 0; present[w] = 0; });
+  const seen = new Set(dates);
+  for (let i = 0; i < total; i++) {
+    const d = new Date(start.getTime() + i * 86400000);
+    elapsed[d.getDay()]++;
+    if (seen.has(fmt(d))) present[d.getDay()]++;
+  }
+
+  let bestWd = null, bestRate = -1;
+  WD_ORDER.forEach(w => {
+    const r = elapsed[w] ? present[w] / elapsed[w] : 0;
+    if (r > bestRate) { bestRate = r; bestWd = w; }
+  });
+
+  box.innerHTML = WD_ORDER.map(w => {
+    const rate = elapsed[w] ? Math.round(present[w] / elapsed[w] * 100) : 0;
+    return `<div class="wd-row ${w===bestWd?'best':''}">
+      <div class="wd-name">${WD_NAMES[w]}</div>
+      <div class="wd-bar-wrap"><div class="wd-bar" style="width:${rate}%"></div></div>
+      <div class="wd-val">${present[w]}/${elapsed[w]} · ${rate}%</div>
+    </div>`;
+  }).join("");
+
+  const ties = WD_ORDER.filter(w => w !== bestWd && elapsed[w] && (present[w]/elapsed[w]) === bestRate);
+  const worst = WD_ORDER.filter(w => elapsed[w] > 0).sort((a,b) => (present[a]/elapsed[a]) - (present[b]/elapsed[b]))[0];
+  note.innerHTML = `找她去 <b>${WD_NAMES[bestWd]}</b>：过去 ${elapsed[bestWd]} 个${WD_NAMES[bestWd]}里，她在办公室出现过 ${present[bestWd]} 次，概率 <b>${Math.round(bestRate*100)}%</b>。
+    ${ties.length ? `（${ties.map(w=>WD_NAMES[w]).join("、")}并列第一）` : ""}
+    ${worst !== undefined && worst !== bestWd ? `<br>最别挑 <b>${WD_NAMES[worst]}</b>，概率只有 ${Math.round(present[worst]/elapsed[worst]*100)}%。` : ""}`;
+}
+
+/* ---------- 时段分布 ---------- */
+function renderHourChart() {
+  const box = document.getElementById("hour-chart");
+  const sightings = allSightings().filter(s => s.t);
+  const known = sightings.length;
+  const total = allSightings().length;
+
+  const counts = {}; SLOTS.forEach(s => counts[s.key] = 0);
+  sightings.forEach(s => {
+    const h = Number(s.t.split(":")[0]);
+    const slot = SLOTS.find(sl => sl.test(h));
+    if (slot) counts[slot.key]++;
+  });
+  const max = Math.max(...SLOTS.map(s => counts[s.key]), 1);
+  const best = SLOTS.reduce((a, b) => counts[b.key] > counts[a.key] ? b : a);
+
+  box.innerHTML = SLOTS.map(s => `
+    <div class="col ${counts[s.key] === counts[best.key] && counts[s.key] > 0 ? 'best' : ''}">
+      <div class="bar" style="height:${counts[s.key]/max*100}%">
+        ${counts[s.key] ? `<span class="num">${counts[s.key]}</span>` : ""}
+      </div>
+      <div class="xlab">${s.name}</div>
+    </div>`).join("");
+
+  box.title = known ? `共 ${known} 次有明确时间；另有 ${total-known} 次未填时间` : "";
+}
+
+/* ---------- 月度趋势 ---------- */
+function renderMonthChart() {
+  const box = document.getElementById("month-chart");
+  const months = [];
+  let [y, m] = addMonths(viewYear, viewMonth, -11);
+  for (let i = 0; i < 12; i++) { months.push([y, m]); [y, m] = addMonths(y, m, 1); }
+
+  const stats = months.map(([yy, mm]) => {
+    const prefix = `${yy}-${String(mm+1).padStart(2,"0")}`;
+    const days = Object.keys(records).filter(k => k.startsWith(prefix) && records[k].length);
+    return { days: days.length, times: days.reduce((n, k) => n + records[k].length, 0) };
+  });
+  const max = Math.max(...stats.map(s => s.times), 1);
+  const bestTimes = Math.max(...stats.map(s => s.times));
+
+  box.innerHTML = months.map(([yy, mm], i) => `
+    <div class="col ${stats[i].times > 0 && stats[i].times === bestTimes ? 'best' : ''}">
+      <div class="bar" style="height:${stats[i].times/max*100}%" title="${yy}年${mm+1}月：${stats[i].days} 天 / ${stats[i].times} 次">
+        ${stats[i].times ? `<span class="num">${stats[i].times}</span>` : ""}
+      </div>
+      <div class="xlab">${String(yy).slice(2)}.${mm+1}</div>
+    </div>`).join("");
+}
+
+/* ---------- 明细 ---------- */
+function renderList() {
+  const box = document.getElementById("rec-list");
+  const prefix = `${viewYear}-${String(viewMonth+1).padStart(2,"0")}`;
+  const rows = [];
+  Object.keys(records).filter(k => k.startsWith(prefix) && records[k].length)
+    .sort().reverse().forEach(d => {
+      records[d].forEach(s => rows.push({ date: d, ...s }));
+    });
+  const dayCount = new Set(rows.map(r => r.date)).size;
+  document.getElementById("rec-count").textContent = rows.length ? `共 ${dayCount} 天 / ${rows.length} 次` : "";
+
+  if (!rows.length) {
+    box.innerHTML = `<div class="empty">${viewYear}年${viewMonth+1}月还没碰见过她</div>`;
+    return;
+  }
+  box.innerHTML = rows.map(r => `<div class="rec-item">
+      <span class="left">
+        <span class="time">${escapeHtml(r.t || "未填时间")}</span>
+        <span class="date">${r.date}</span>
+        <span class="wd">${WD_NAMES[parse(r.date).getDay()]}</span>
+        ${r.n ? `<span class="note-txt">${escapeHtml(r.n)}</span>` : ""}
+      </span>
+      <button class="del" data-d="${r.date}">删除</button>
+    </div>`).join("");
+
+  box.querySelectorAll(".del").forEach(b => b.onclick = () => {
+    const d = b.dataset.d;
+    const arr = records[d] || [];
+    // 同一天同样时间的多条时删最后一条
+    arr.pop();
+    if (!arr.length) delete records[d];
+    save(); renderAll();
+    toast("已删除 " + d);
+  });
+}
+
+/* ---------- 操作 ---------- */
+document.getElementById("btn-now").onclick = () => {
+  const d = fmt(new Date()), t = nowTime();
+  if (!records[d]) records[d] = [];
+  records[d].push({ t, n: "" });
+  save(); renderAll();
+  toast(`已记下：${d} ${t} 她在办公室`);
+};
+document.getElementById("btn-add-other").onclick = () => openModal(fmt(new Date()));
+document.getElementById("prev-month").onclick = () => { [viewYear, viewMonth] = addMonths(viewYear, viewMonth, -1); renderAll(); };
+document.getElementById("next-month").onclick = () => { [viewYear, viewMonth] = addMonths(viewYear, viewMonth, 1); renderAll(); };
+document.getElementById("back-today").onclick = () => { viewYear = today.getFullYear(); viewMonth = today.getMonth(); renderAll(); };
+document.getElementById("btn-export").onclick = () => {
+  const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `叶子姐办公室刷新记录-${fmt(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById("import-file").onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (typeof data !== "object" || !data) throw 0;
+      let n = 0;
+      for (const k in data) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !Array.isArray(data[k])) continue;
+        records[k] = (records[k] || []).concat(data[k]);
+        n += data[k].length;
+      }
+      save(); renderAll();
+      toast(`导入成功，新增 ${n} 条`);
+    } catch { toast("导入失败：文件格式不对"); }
+    e.target.value = "";
+  };
+  reader.readAsText(f);
+};
+document.getElementById("btn-clear").onclick = () => {
+  if (!allDates().length) { toast("本来就是空的"); return; }
+  if (!confirm("确定清空全部记录？不可恢复，建议先导出备份。")) return;
+  records = {};
+  save(); renderAll();
+  toast("已清空");
+};
+
+function renderAll() {
+  renderStats(); renderCalendar(); renderWeekday();
+  renderHourChart(); renderMonthChart(); renderList();
+}
+renderAll();
+</script>
+</body>
+</html>
